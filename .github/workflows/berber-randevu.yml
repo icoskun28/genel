@@ -41,7 +41,7 @@ jobs:
           KS_PASS: ${{ secrets.BERBER_KEYSTORE_PASS }}
           KS_ALIAS: ${{ secrets.BERBER_KEY_ALIAS }}
         run: |
-          if [ -n "$EXPO_PUBLIC_FIREBASE_API_KEY" ]; then echo "Mod: Firebase"; else echo "Mod: DEMO (Firebase secret'ları tanımlı değil)"; fi
+          if [ "$EXPO_PUBLIC_DEMO_MODE" = "1" ]; then echo "Mod: DEMO"; else echo "Mod: Firebase"; fi
           SIGN=""
           if [ -n "$KS_B64" ]; then
             echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"

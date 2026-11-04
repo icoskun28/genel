@@ -123,6 +123,10 @@ export function errorMessage(e: unknown): string {
   const code = (e as { code?: string })?.code ?? '';
   const map: Record<string, string> = {
     'auth/invalid-credential': 'E-posta veya şifre hatalı.',
+    'auth/invalid-login-credentials': 'E-posta veya şifre hatalı.',
+    'auth/requires-recent-login': 'Güvenlik için çıkış yapıp tekrar giriş yapın.',
+    'auth/missing-email': 'E-posta adresi girin.',
+    'unavailable': 'Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edin.',
     'auth/wrong-password': 'Şifre hatalı.',
     'auth/user-not-found': 'Bu e-posta ile kayıtlı kullanıcı yok.',
     'auth/email-already-in-use': 'Bu e-posta zaten kayıtlı.',
