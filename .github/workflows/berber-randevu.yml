@@ -1,0 +1,64 @@
+name: Berber Randevu APK
+on:
+  workflow_dispatch:
+  push:
+    paths: ['berber-randevu/**', '.github/workflows/berber-randevu.yml']
+concurrency: { group: berber-randevu-apk, cancel-in-progress: true }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions: { contents: write }
+    defaults: { run: { working-directory: berber-randevu } }
+    env:
+      APK_NAME: BerberRandevu-Beta-0.1.apk
+      RELEASE_TAG: berber-randevu-beta-0.1
+      EXPO_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+      EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+      EXPO_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+      EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+      EXPO_PUBLIC_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: berber-randevu/package-lock.json
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Bağımlılıklar
+        run: npm ci
+      - name: Tip kontrolü
+        run: npx tsc --noEmit
+      - name: Android projesini üret
+        run: CI=1 npx expo prebuild --platform android --no-install --clean
+      - name: APK derle
+        env:
+          KS_B64: ${{ secrets.BERBER_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.BERBER_KEYSTORE_PASS }}
+          KS_ALIAS: ${{ secrets.BERBER_KEY_ALIAS }}
+        run: |
+          if [ -n "$EXPO_PUBLIC_FIREBASE_API_KEY" ]; then echo "Mod: Firebase"; else echo "Mod: DEMO (Firebase secret'ları tanımlı değil)"; fi
+          SIGN=""
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            SIGN="-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release.jks -Pandroid.injected.signing.store.password=$KS_PASS -Pandroid.injected.signing.key.alias=$KS_ALIAS -Pandroid.injected.signing.key.password=$KS_PASS"
+            echo "İmza: kalıcı anahtar"
+          else
+            echo "İmza: test (debug) anahtarı"
+          fi
+          cd android
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a $SIGN
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/$APK_NAME"
+      - uses: actions/upload-artifact@v4
+        with: { name: BerberRandevu-Beta-0.1, path: '${{ env.APK_NAME }}' }
+      - name: Sürüm yayınla
+        working-directory: .
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          gh release delete "$RELEASE_TAG" -y --cleanup-tag || true
+          gh release create "$RELEASE_TAG" "$APK_NAME" --prerelease --title "Berber Randevu Beta 0.1" \
+            --notes "Berber Randevu Takip — Beta 0.1 (Android APK). © 2026 Coşkun Fotos Ltd. Şti. Tüm hakları saklıdır."

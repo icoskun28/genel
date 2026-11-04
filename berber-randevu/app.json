@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Berber Randevu",
+    "slug": "berber-randevu",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#1E2A3E",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E2A3E"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.coskunfotos.berberrandevu",
+      "buildNumber": "1"
+    },
+    "android": {
+      "package": "com.coskunfotos.berberrandevu",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#1E2A3E",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["android.permission.CAMERA"],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Berber / kuaför karekodunu okutmak için kamera izni gereklidir.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
+    ],
+    "extra": {
+      "versionName": "Beta 0.1",
+      "owner": "Coşkun Fotos Ltd. Şti."
+    }
+  }
+}

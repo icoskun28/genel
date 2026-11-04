@@ -1,0 +1,57 @@
+rules_version = '2';
+// Berber Randevu Takip — Cloud Firestore güvenlik kuralları
+// © 2026 Coşkun Fotos Ltd. Şti.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function userData(id) { return get(/databases/$(database)/documents/users/$(id)).data; }
+    function hasProfile() { return exists(/databases/$(database)/documents/users/$(uid())); }
+    function isAdmin() { return signedIn() && hasProfile() && userData(uid()).role == 'admin'; }
+    function isBarber() { return signedIn() && hasProfile() && userData(uid()).role == 'barber'; }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (userId == uid() || isAdmin() || isBarber() || resource.data.role == 'barber');
+      // Müşteri kendi kaydını oluşturabilir; berber hesaplarını yalnızca yönetici açar
+      allow create: if signedIn() && (
+        (userId == uid() && request.resource.data.role == 'customer') || isAdmin());
+      allow update: if isAdmin() || (userId == uid() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'subscription', 'active', 'email']));
+      allow delete: if isAdmin();
+    }
+
+    match /links/{linkId} {
+      allow read: if signedIn() && (resource == null || resource.data.barberId == uid() ||
+        resource.data.customerId == uid() || isAdmin());
+      allow create: if signedIn() &&
+        (request.resource.data.barberId == uid() || request.resource.data.customerId == uid()) &&
+        linkId == request.resource.data.barberId + '_' + request.resource.data.customerId;
+      allow delete: if signedIn() && (resource.data.barberId == uid() || resource.data.customerId == uid() || isAdmin());
+    }
+
+    // Dolu saat dilimleri: herkes görebilir (kimin aldığı bilgisi gösterilmez), güncellenemez
+    match /busy/{slotId} {
+      allow read: if signedIn();
+      allow create: if signedIn() &&
+        (request.resource.data.customerId == uid() || request.resource.data.barberId == uid());
+      allow delete: if signedIn() &&
+        (resource.data.customerId == uid() || resource.data.barberId == uid() || isAdmin());
+    }
+
+    match /appointments/{apptId} {
+      allow read: if signedIn() && (resource.data.barberId == uid() || resource.data.customerId == uid() || isAdmin());
+      allow create: if signedIn() &&
+        (request.resource.data.customerId == uid() || request.resource.data.barberId == uid()) &&
+        request.resource.data.status == 'booked';
+      allow update: if signedIn() && (resource.data.barberId == uid() || resource.data.customerId == uid()) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+
+      match /messages/{messageId} {
+        function appt() { return get(/databases/$(database)/documents/appointments/$(apptId)).data; }
+        allow read: if signedIn() && (appt().barberId == uid() || appt().customerId == uid());
+        allow create: if signedIn() && request.resource.data.senderId == uid() &&
+          (appt().barberId == uid() || appt().customerId == uid());
+      }
+    }
+  }
+}

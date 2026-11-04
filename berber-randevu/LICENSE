@@ -1,0 +1,15 @@
+Berber Randevu Takip
+Telif Hakkı (c) 2026 Coşkun Fotos Ltd. Şti. Tüm hakları saklıdır.
+
+Bu yazılımın (kaynak kodu, tasarımı, adı, logosu ve ilgili tüm belgeleri dahil)
+tüm sınai ve fikri mülkiyet hakları Coşkun Fotos Ltd. Şti.'ne aittir.
+Coşkun Fotos Ltd. Şti.'nin önceden yazılı izni olmadan bu yazılımın tamamı veya
+bir kısmı kopyalanamaz, çoğaltılamaz, değiştirilemez, dağıtılamaz, satılamaz,
+kiralanamaz veya ticari amaçla kullanılamaz.
+
+Üçüncü taraf bileşenler:
+Bu yazılım; Expo, React Native, React, Firebase JS SDK, react-native-svg,
+react-native-qrcode-svg ve AsyncStorage gibi açık kaynak kütüphaneleri kullanır.
+Bu kütüphaneler kendi lisansları (MIT / Apache-2.0) altındadır ve ticari
+kullanıma izin verir. Lisans metinleri node_modules altındaki ilgili paketlerde
+yer alır.
